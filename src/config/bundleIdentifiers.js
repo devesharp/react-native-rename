@@ -18,6 +18,7 @@ export function bundleIdentifiers(currentAppName, newName, projectName, currentB
         `${newBundlePath}/MainActivity.java`,
         `${newBundlePath}/MainApplication.java`,
         `${newBundlePath.replace('/main/', '/androidTest/')}/DetoxTest.java`,
+        `${newBundlePath.replace('/main/', '/debug/')}/ReactNativeFlipper.java`,
       ],
     },
     {

@@ -193,6 +193,27 @@ loadAppConfig()
               const fullCurrentBundlePath = path.join(__dirname, currentJavaPath);
               const fullNewBundlePath = path.join(__dirname, newBundlePath);
 
+              // Create new bundle folder if doesn't exist yet
+              if (!fs.existsSync(fullNewBundlePath)) {
+                shell.mkdir('-p', fullNewBundlePath);
+                const move = shell.exec(`git mv -k "${fullCurrentBundlePath}/"* "${fullNewBundlePath}"`);
+                const successMsg = `${newBundlePath} ${colors.green('BUNDLE INDENTIFIER CHANGED')}`;
+
+                if (move.code === 0) {
+                  console.log(successMsg);
+                } else if (move.code === 128) {
+                  // if "outside repository" error occured
+                  if (shell.mv('-f', fullCurrentBundlePath + '/*', fullNewBundlePath).code === 0) {
+                    console.log(successMsg);
+                  } else {
+                    console.log(`Error moving: "${currentJavaPath}" "${newBundlePath}"`);
+                  }
+                }
+              }
+
+              /**
+               * change AndroidTest Detox
+               */
               const androidTestfullCurrentBundlePath = path
                 .join(__dirname, currentJavaPath)
                 .replace('/main/', '/androidTest/');
@@ -224,17 +245,25 @@ loadAppConfig()
                 }
               }
 
+              /**
+               * change AndroidTest Detox
+               */
+              const debugfullCurrentBundlePath = path.join(__dirname, currentJavaPath).replace('/main/', '/debug/');
+              const debugfullNewBundlePath = path.join(__dirname, newBundlePath).replace('/main/', '/debug/');
+
               // Create new bundle folder if doesn't exist yet
-              if (!fs.existsSync(fullNewBundlePath)) {
-                shell.mkdir('-p', fullNewBundlePath);
-                const move = shell.exec(`git mv -k "${fullCurrentBundlePath}/"* "${fullNewBundlePath}"`);
-                const successMsg = `${newBundlePath} ${colors.green('BUNDLE INDENTIFIER CHANGED')}`;
+              if (!fs.existsSync(debugfullNewBundlePath)) {
+                shell.mkdir('-p', debugfullNewBundlePath);
+                const move = shell.exec(`git mv -k "${debugfullCurrentBundlePath}/"* "${debugfullNewBundlePath}"`);
+                const successMsg = `${newBundlePath.replace('/main/', '/debug/')} ${colors.green(
+                  'BUNDLE INDENTIFIER CHANGED'
+                )}`;
 
                 if (move.code === 0) {
                   console.log(successMsg);
                 } else if (move.code === 128) {
                   // if "outside repository" error occured
-                  if (shell.mv('-f', fullCurrentBundlePath + '/*', fullNewBundlePath).code === 0) {
+                  if (shell.mv('-f', debugfullCurrentBundlePath + '/*', debugfullNewBundlePath).code === 0) {
                     console.log(successMsg);
                   } else {
                     console.log(`Error moving: "${currentJavaPath}" "${newBundlePath}"`);
