@@ -14,7 +14,11 @@ export function bundleIdentifiers(currentAppName, newName, projectName, currentB
     {
       regex: currentBundleID,
       replacement: newBundleID,
-      paths: [`${newBundlePath}/MainActivity.java`, `${newBundlePath}/MainApplication.java`],
+      paths: [
+        `${newBundlePath}/MainActivity.java`,
+        `${newBundlePath}/MainApplication.java`,
+        `${newBundlePath.replace('/main/', '/androidTest/')}/DetoxTest.java`,
+      ],
     },
     {
       // App name (probably) doesn't start with `.`, but the bundle ID will

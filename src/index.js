@@ -69,9 +69,7 @@ const cleanBuilds = () => {
   console.log('Done removing builds.'.green);
 };
 
-const loadAppConfig = () => {
-  return readFile(path.join(__dirname, 'app.json')).then(data => JSON.parse(data));
-}
+const loadAppConfig = () => readFile(path.join(__dirname, 'app.json')).then(data => JSON.parse(data));
 
 loadAppConfig()
   .then(appConfig => {
@@ -86,7 +84,7 @@ loadAppConfig()
       .action(newName => {
         const nS_NewName = newName.replace(/\s/g, '');
         const pattern = /^([\p{Letter}\p{Number}])+([\p{Letter}\p{Number}\s]+)$/u;
-        const lC_Ns_NewAppName = nS_NewName.toLowerCase();
+        // const lC_Ns_NewAppName = nS_NewName.toLowerCase();
         const bundleID = program.bundleID ? program.bundleID.toLowerCase() : null;
         let newBundlePath;
         const listOfFoldersAndFiles = foldersAndFiles(currentAppName, newName);
@@ -102,7 +100,9 @@ loadAppConfig()
             );
           }
           if (!validBundleID.test(bundleID)) {
-            return console.log('Invalid Bundle Identifier. It must have at least two segments (one or more dots). Each segment must start with a letter. All characters must be alphanumeric or an underscore [a-zA-Z0-9_]')
+            return console.log(
+              'Invalid Bundle Identifier. It must have at least two segments (one or more dots). Each segment must start with a letter. All characters must be alphanumeric or an underscore [a-zA-Z0-9_]'
+            );
           }
         }
 
@@ -127,9 +127,7 @@ loadAppConfig()
               itemsProcessed += index;
 
               if (fs.existsSync(path.join(__dirname, element)) || !fs.existsSync(path.join(__dirname, element))) {
-                const move = shell.exec(
-                  `git mv -k "${path.join(__dirname, element)}" "${path.join(__dirname, dest)}"`
-                );
+                const move = shell.exec(`git mv -k "${path.join(__dirname, element)}" "${path.join(__dirname, dest)}"`);
 
                 if (move.code === 0) {
                   console.log(successMsg);
@@ -194,6 +192,37 @@ loadAppConfig()
 
               const fullCurrentBundlePath = path.join(__dirname, currentJavaPath);
               const fullNewBundlePath = path.join(__dirname, newBundlePath);
+
+              const androidTestfullCurrentBundlePath = path
+                .join(__dirname, currentJavaPath)
+                .replace('/main/', '/androidTest/');
+              const androidTestfullNewBundlePath = path
+                .join(__dirname, newBundlePath)
+                .replace('/main/', '/androidTest/');
+
+              // Create new bundle folder if doesn't exist yet
+              if (!fs.existsSync(androidTestfullNewBundlePath)) {
+                shell.mkdir('-p', androidTestfullNewBundlePath);
+                const move = shell.exec(
+                  `git mv -k "${androidTestfullCurrentBundlePath}/"* "${androidTestfullNewBundlePath}"`
+                );
+                const successMsg = `${newBundlePath.replace('/main/', '/androidTest/')} ${colors.green(
+                  'BUNDLE INDENTIFIER CHANGED'
+                )}`;
+
+                if (move.code === 0) {
+                  console.log(successMsg);
+                } else if (move.code === 128) {
+                  // if "outside repository" error occured
+                  if (
+                    shell.mv('-f', androidTestfullCurrentBundlePath + '/*', androidTestfullNewBundlePath).code === 0
+                  ) {
+                    console.log(successMsg);
+                  } else {
+                    console.log(`Error moving: "${currentJavaPath}" "${newBundlePath}"`);
+                  }
+                }
+              }
 
               // Create new bundle folder if doesn't exist yet
               if (!fs.existsSync(fullNewBundlePath)) {
